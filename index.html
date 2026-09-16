@@ -1,0 +1,617 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+  html,body{margin:0;padding:0;}
+  body{font-family:'Noto Sans TC',sans-serif;color:#1f2440;}
+  button{font-family:inherit;cursor:pointer;border:none;}
+  a{color:#2f6fed;} a:hover{color:#1b4fd0;}
+  @keyframes pop{0%{transform:scale(.3);opacity:0;}60%{transform:scale(1.1);}100%{transform:scale(1);opacity:1;}}
+  @keyframes shake{0%,100%{transform:translateX(0);}20%{transform:translateX(-9px);}60%{transform:translateX(9px);}}
+  @keyframes floaty{0%,100%{transform:translateY(0);}50%{transform:translateY(-12px);}}
+  @keyframes fadeUp{0%{transform:translateY(18px);opacity:0;}100%{transform:translateY(0);opacity:1;}}
+  @keyframes ring{0%{box-shadow:0 0 0 0 rgba(47,111,237,.45);}100%{box-shadow:0 0 0 30px rgba(47,111,237,0);}}
+  @keyframes spin{to{transform:rotate(360deg);}}
+</style>
+</helmet>
+<div style="min-height:100vh;background:radial-gradient(1200px 700px at 15% -10%,#fff3d6 0%,transparent 55%),radial-gradient(1100px 700px at 110% 10%,#d9f0ff 0%,transparent 55%),linear-gradient(160deg,#fef9f0,#eef4ff);display:flex;flex-direction:column;">
+
+  <div style="display:flex;align-items:center;gap:14px;padding:14px 22px;background:rgba(255,255,255,.72);backdrop-filter:blur(8px);border-bottom:3px solid #ffe0a3;position:sticky;top:0;z-index:40;">
+    <sc-if value="{{ notHome }}" hint-placeholder-val="{{ true }}">
+      <button onClick="{{ goHome }}" style="display:flex;align-items:center;gap:8px;background:#fff;border:2px solid #ffd27a;border-radius:999px;padding:10px 18px;font-size:20px;font-weight:700;color:#e07a1f;box-shadow:0 3px 0 #ffd27a;">⌂ 首頁</button>
+    </sc-if>
+    <div style="font-family:'Fredoka','Noto Sans TC';font-size:26px;font-weight:700;color:#2f6fed;letter-spacing:.5px;">運動英文大挑戰 <span style="color:#e8618c;">Move &amp; Learn</span></div>
+    <div style="flex:1;"></div>
+    <button onClick="{{ toggleSound }}" style="background:{{ soundBtnBg }};border:2px solid #cbd6f5;border-radius:999px;padding:10px 16px;font-size:20px;font-weight:700;color:#2f6fed;">{{ soundLabel }}</button>
+  </div>
+
+  <sc-if value="{{ toast.show }}" hint-placeholder-val="{{ false }}">
+    <div style="{{ toast.style }}">{{ toast.msg }}</div>
+  </sc-if>
+
+  <div style="flex:1;display:flex;flex-direction:column;padding:26px;max-width:1400px;width:100%;margin:0 auto;">
+
+    <!-- HOME -->
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ true }}">
+      <div style="text-align:center;margin:10px 0 26px;animation:fadeUp .5s ease;">
+        <div style="display:inline-block;background:#fff;border:3px solid #ffe0a3;border-radius:26px;padding:18px 34px;box-shadow:0 10px 0 rgba(255,210,122,.35);">
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:60px;font-weight:700;line-height:1.05;color:#2f6fed;">動起來，學英文！</div>
+          <div style="font-size:24px;font-weight:700;color:#e8618c;margin-top:8px;">40+ 運動單字 · 在大觸屏上邊動邊學 · 全部可發音</div>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:22px;">
+        <sc-for list="{{ homeTiles }}" as="tile" hint-placeholder-count="4">
+          <button onClick="{{ tile.onTap }}" style="{{ tile.style }}">
+            <div style="font-size:56px;line-height:1;">{{ tile.icon }}</div>
+            <div style="font-family:'Fredoka','Noto Sans TC';font-size:34px;font-weight:700;margin-top:10px;">{{ tile.title }}</div>
+            <div style="font-size:19px;font-weight:500;opacity:.92;margin-top:4px;">{{ tile.desc }}</div>
+          </button>
+        </sc-for>
+      </div>
+      <div style="text-align:center;margin-top:28px;font-size:18px;color:#6b7394;font-weight:500;">目前已練習 <b style="color:#2f6fed;">{{ stat.practiced }}</b> / {{ stat.totalWords }} 個單字 · 完成 <b style="color:#e8618c;">{{ stat.sessions }}</b> 場活動</div>
+    </sc-if>
+
+    <!-- GAME MENU -->
+    <sc-if value="{{ isMenu }}" hint-placeholder-val="{{ false }}">
+      <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;margin-bottom:6px;">選一個遊戲來練習 🏃</div>
+      <div style="font-size:20px;color:#6b7394;margin-bottom:22px;font-weight:500;">在螢幕上跑動、伸手、拍打 —— 用身體記住單字！</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:22px;">
+        <sc-for list="{{ gameTiles }}" as="tile" hint-placeholder-count="4">
+          <button onClick="{{ tile.onTap }}" style="{{ tile.style }}">
+            <div style="font-size:52px;line-height:1;">{{ tile.icon }}</div>
+            <div style="font-family:'Fredoka','Noto Sans TC';font-size:30px;font-weight:700;margin-top:8px;">{{ tile.title }}</div>
+            <div style="font-size:18px;font-weight:500;opacity:.92;margin-top:4px;">{{ tile.desc }}</div>
+          </button>
+        </sc-for>
+      </div>
+    </sc-if>
+
+    <!-- CORNERS -->
+    <sc-if value="{{ isCorners }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ cor.playing }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:22px;font-weight:700;color:#2f6fed;">四角挑戰 · 第 {{ cor.roundLabel }} 題</div>
+          <div style="font-size:22px;font-weight:700;color:#e8618c;">得分 {{ cor.score }}</div>
+        </div>
+        <div style="position:relative;flex:1;min-height:520px;background:rgba(255,255,255,.6);border:3px dashed #ffd27a;border-radius:24px;overflow:hidden;">
+          <sc-for list="{{ cor.options }}" as="opt" hint-placeholder-count="4">
+            <button onClick="{{ opt.onTap }}" style="{{ opt.style }}">{{ opt.en }}</button>
+          </sc-for>
+          <div style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;background:#fff;border:3px solid #2f6fed;border-radius:24px;padding:20px 26px;box-shadow:0 8px 24px rgba(47,111,237,.25);width:260px;">
+            <div style="font-size:17px;color:#6b7394;font-weight:600;">聽發音，跑到正確角落！</div>
+            <button onClick="{{ cor.replay }}" style="margin:12px auto 6px;display:block;width:96px;height:96px;border-radius:50%;background:#2f6fed;color:#fff;font-size:44px;box-shadow:0 6px 0 #1b4fd0;animation:ring 1.6s infinite;">🔊</button>
+            <div style="font-size:26px;font-weight:900;color:#e07a1f;margin-top:8px;">{{ cor.hintZh }}</div>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ cor.done }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ resultStyle }}">
+          <div style="font-size:64px;">🎉</div>
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">完成！得分 {{ cor.score }} / {{ cor.total }}</div>
+          <div style="font-size:22px;color:#6b7394;margin:8px 0 20px;">{{ cor.grade }}</div>
+          <div style="display:flex;gap:16px;">
+            <button onClick="{{ startCorners }}" style="{{ btnPrimary }}">再玩一次</button>
+            <button onClick="{{ goMenu }}" style="{{ btnGhost }}">回遊戲選單</button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- WHACK -->
+    <sc-if value="{{ isWhack }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ whack.playing }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px;">
+          <div style="font-size:22px;font-weight:700;color:#2f6fed;">打地鼠 · 剩 {{ whack.time }} 秒</div>
+          <div style="font-size:22px;font-weight:700;color:#e8618c;">得分 {{ whack.score }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;background:#fff;border:3px solid #ffd27a;border-radius:20px;padding:12px 20px;margin-bottom:14px;">
+          <div style="font-size:19px;color:#6b7394;font-weight:600;">快拍打：</div>
+          <div style="font-size:34px;font-weight:900;color:#e07a1f;">{{ whack.targetZh }}</div>
+          <button onClick="{{ whack.say }}" style="margin-left:auto;background:#2f6fed;color:#fff;border-radius:12px;padding:8px 16px;font-size:20px;font-weight:700;">🔊 發音</button>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:16px;flex:1;">
+          <sc-for list="{{ whack.holes }}" as="hole" hint-placeholder-count="9">
+            <button onClick="{{ hole.onTap }}" style="{{ hole.style }}">{{ hole.en }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ whack.done }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ resultStyle }}">
+          <div style="font-size:64px;">🥇</div>
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">時間到！打中 {{ whack.score }} 個</div>
+          <div style="font-size:22px;color:#6b7394;margin:8px 0 20px;">{{ whack.grade }}</div>
+          <div style="display:flex;gap:16px;">
+            <button onClick="{{ startWhack }}" style="{{ btnPrimary }}">再玩一次</button>
+            <button onClick="{{ goMenu }}" style="{{ btnGhost }}">回遊戲選單</button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- MATCH -->
+    <sc-if value="{{ isMatch }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ match.playing }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+          <div style="font-size:22px;font-weight:700;color:#2f6fed;">中英配對 · 第 {{ match.roundLabel }} 組</div>
+          <div style="font-size:20px;font-weight:700;color:#6b7394;">點中文 → 再點對應英文</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:26px;flex:1;">
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="text-align:center;font-size:20px;font-weight:700;color:#e8618c;">中文</div>
+            <sc-for list="{{ match.left }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.onTap }}" style="{{ c.style }}">{{ c.zh }}</button>
+            </sc-for>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:16px;">
+            <div style="text-align:center;font-size:20px;font-weight:700;color:#2f6fed;">English</div>
+            <sc-for list="{{ match.right }}" as="c" hint-placeholder-count="4">
+              <button onClick="{{ c.onTap }}" style="{{ c.style }}">{{ c.en }}</button>
+            </sc-for>
+          </div>
+        </div>
+      </sc-if>
+      <sc-if value="{{ match.done }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ resultStyle }}">
+          <div style="font-size:64px;">🧩</div>
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">全部配對完成！</div>
+          <div style="font-size:22px;color:#6b7394;margin:8px 0 20px;">一次答對 {{ match.perfect }} / {{ match.total }} 組</div>
+          <div style="display:flex;gap:16px;">
+            <button onClick="{{ startMatch }}" style="{{ btnPrimary }}">再玩一次</button>
+            <button onClick="{{ goMenu }}" style="{{ btnGhost }}">回遊戲選單</button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- TRACK -->
+    <sc-if value="{{ isTrack }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ track.playing }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div style="font-size:22px;font-weight:700;color:#2f6fed;">移動接字 · 第 {{ track.roundLabel }} 題</div>
+          <div style="font-size:22px;font-weight:700;color:#e8618c;">得分 {{ track.score }}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:14px;background:#fff;border:3px solid #ffd27a;border-radius:20px;padding:12px 20px;margin-bottom:14px;">
+          <div style="font-size:19px;color:#6b7394;font-weight:600;">點中：</div>
+          <div style="font-size:32px;font-weight:900;color:#e07a1f;">{{ track.targetZh }}</div>
+          <button onClick="{{ track.say }}" style="margin-left:auto;background:#2f6fed;color:#fff;border-radius:12px;padding:8px 16px;font-size:20px;font-weight:700;">🔊 發音</button>
+        </div>
+        <div style="position:relative;flex:1;min-height:420px;background:linear-gradient(180deg,#eafaff,#f3fff0);border:3px dashed #7fd1c4;border-radius:24px;overflow:hidden;">
+          <sc-for list="{{ track.items }}" as="it" hint-placeholder-count="3">
+            <button onClick="{{ it.onTap }}" style="{{ it.style }}">{{ it.en }}</button>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ track.done }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ resultStyle }}">
+          <div style="font-size:64px;">⚡</div>
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">完成！得分 {{ track.score }} / {{ track.total }}</div>
+          <div style="font-size:22px;color:#6b7394;margin:8px 0 20px;">{{ track.grade }}</div>
+          <div style="display:flex;gap:16px;">
+            <button onClick="{{ startTrack }}" style="{{ btnPrimary }}">再玩一次</button>
+            <button onClick="{{ goMenu }}" style="{{ btnGhost }}">回遊戲選單</button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- QUIZ -->
+    <sc-if value="{{ isQuiz }}" hint-placeholder-val="{{ false }}">
+      <sc-if value="{{ quiz.playing }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
+          <div style="font-size:22px;font-weight:700;color:#2f6fed;">測驗 · 第 {{ quiz.num }} / {{ quiz.total }} 題</div>
+          <div style="font-size:22px;font-weight:700;color:#e8618c;">答對 {{ quiz.score }}</div>
+        </div>
+        <div style="height:14px;background:#e6ecfb;border-radius:999px;overflow:hidden;margin-bottom:18px;">
+          <div style="{{ quiz.barStyle }}"></div>
+        </div>
+        <div style="background:#fff;border:3px solid #cbd6f5;border-radius:22px;padding:24px;text-align:center;">
+          <div style="display:inline-block;background:{{ quiz.tagColor }};color:#fff;font-size:16px;font-weight:700;padding:6px 16px;border-radius:999px;">{{ quiz.tag }}</div>
+          <div style="font-size:26px;font-weight:700;color:#1f2440;margin:16px 0;line-height:1.4;text-wrap:pretty;">{{ quiz.prompt }}</div>
+          <sc-if value="{{ quiz.hasAudio }}" hint-placeholder-val="{{ false }}">
+            <button onClick="{{ quiz.say }}" style="margin:0 auto 10px;display:flex;align-items:center;gap:8px;background:#2f6fed;color:#fff;border-radius:14px;padding:12px 24px;font-size:22px;font-weight:700;">🔊 再聽一次</button>
+          </sc-if>
+        </div>
+
+        <sc-if value="{{ quiz.isChoice }}" hint-placeholder-val="{{ true }}">
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:20px;">
+            <sc-for list="{{ quiz.options }}" as="opt" hint-placeholder-count="4">
+              <button onClick="{{ opt.onTap }}" style="{{ opt.style }}">{{ opt.label }}</button>
+            </sc-for>
+          </div>
+        </sc-if>
+        <sc-if value="{{ quiz.isSpell }}" hint-placeholder-val="{{ false }}">
+          <div style="margin-top:20px;">
+            <div style="min-height:70px;background:#fff;border:3px dashed #cbd6f5;border-radius:16px;display:flex;align-items:center;justify-content:center;gap:6px;font-family:'Fredoka';font-size:40px;font-weight:700;letter-spacing:4px;color:#2f6fed;">{{ quiz.built }}</div>
+            <div style="display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:18px;">
+              <sc-for list="{{ quiz.tiles }}" as="t" hint-placeholder-count="6">
+                <button onClick="{{ t.onTap }}" style="{{ t.style }}">{{ t.ch }}</button>
+              </sc-for>
+            </div>
+            <div style="display:flex;gap:14px;justify-content:center;margin-top:18px;">
+              <button onClick="{{ quiz.back }}" style="{{ btnGhost }}">⌫ 刪除</button>
+              <button onClick="{{ quiz.clear }}" style="{{ btnGhost }}">清空</button>
+            </div>
+          </div>
+        </sc-if>
+      </sc-if>
+      <sc-if value="{{ quiz.done }}" hint-placeholder-val="{{ false }}">
+        <div style="{{ resultStyle }}">
+          <div style="font-size:70px;">{{ quiz.emoji }}</div>
+          <div style="font-family:'Fredoka','Noto Sans TC';font-size:44px;font-weight:700;color:#2f6fed;">測驗結果 {{ quiz.score }} / {{ quiz.total }}</div>
+          <div style="font-size:24px;color:#e8618c;font-weight:700;margin:6px 0;">{{ quiz.pct }}% · {{ quiz.grade }}</div>
+          <div style="font-size:18px;color:#6b7394;margin-bottom:20px;">已存入學習歷程</div>
+          <div style="display:flex;gap:16px;">
+            <button onClick="{{ startQuiz }}" style="{{ btnPrimary }}">再測一次</button>
+            <button onClick="{{ goHistory }}" style="{{ btnGhost }}">看學習歷程</button>
+          </div>
+        </div>
+      </sc-if>
+    </sc-if>
+
+    <!-- HISTORY -->
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:18px;">
+        <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">學習歷程 📈</div>
+        <div style="display:flex;gap:12px;">
+          <button onClick="{{ downloadHistory }}" style="{{ btnPrimary }}">⬇ 下載歷程</button>
+          <button onClick="{{ resetHistory }}" style="{{ btnGhost }}">清除紀錄</button>
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;margin-bottom:24px;">
+        <sc-for list="{{ hist.cards }}" as="c" hint-placeholder-count="4">
+          <div style="{{ c.style }}">
+            <div style="font-size:40px;font-weight:900;font-family:'Fredoka';">{{ c.value }}</div>
+            <div style="font-size:17px;font-weight:600;opacity:.92;margin-top:2px;">{{ c.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:22px;font-weight:700;color:#1f2440;margin-bottom:12px;">單字熟練度</div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px;margin-bottom:28px;">
+        <sc-for list="{{ hist.words }}" as="w" hint-placeholder-count="6">
+          <div style="background:#fff;border:2px solid #eef1fb;border-radius:14px;padding:12px 16px;display:flex;align-items:center;gap:12px;">
+            <button onClick="{{ w.say }}" style="background:#eef4ff;color:#2f6fed;border-radius:10px;width:44px;height:44px;font-size:20px;flex:none;">🔊</button>
+            <div style="flex:1;min-width:0;">
+              <div style="font-family:'Fredoka';font-size:19px;font-weight:700;color:#1f2440;">{{ w.en }} <span style="font-family:'Noto Sans TC';font-size:15px;color:#6b7394;font-weight:500;">{{ w.zh }}</span></div>
+              <div style="height:10px;background:#eef1fb;border-radius:999px;margin-top:6px;overflow:hidden;"><div style="{{ w.barStyle }}"></div></div>
+            </div>
+            <div style="font-size:16px;font-weight:700;color:{{ w.color }};flex:none;">{{ w.label }}</div>
+          </div>
+        </sc-for>
+      </div>
+      <div style="font-size:22px;font-weight:700;color:#1f2440;margin-bottom:12px;">最近活動</div>
+      <sc-if value="{{ hist.hasSessions }}" hint-placeholder-val="{{ true }}">
+        <div style="display:flex;flex-direction:column;gap:10px;">
+          <sc-for list="{{ hist.sessions }}" as="s" hint-placeholder-count="5">
+            <div style="display:flex;align-items:center;gap:14px;background:#fff;border:2px solid #eef1fb;border-radius:12px;padding:12px 18px;">
+              <div style="font-size:22px;">{{ s.icon }}</div>
+              <div style="font-size:19px;font-weight:700;color:#1f2440;">{{ s.type }}</div>
+              <div style="flex:1;"></div>
+              <div style="font-size:19px;font-weight:700;color:#2f6fed;">{{ s.score }}</div>
+              <div style="font-size:15px;color:#9aa2c0;">{{ s.date }}</div>
+            </div>
+          </sc-for>
+        </div>
+      </sc-if>
+      <sc-if value="{{ hist.noSessions }}" hint-placeholder-val="{{ false }}">
+        <div style="text-align:center;color:#9aa2c0;font-size:19px;padding:30px;background:#fff;border-radius:16px;border:2px dashed #dfe4f5;">還沒有活動紀錄，快去玩遊戲或做測驗吧！</div>
+      </sc-if>
+    </sc-if>
+
+    <!-- WORDS -->
+    <sc-if value="{{ isWords }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px;">
+        <div style="font-family:'Fredoka','Noto Sans TC';font-size:40px;font-weight:700;color:#2f6fed;">單字表 📚</div>
+        <button onClick="{{ downloadWords }}" style="{{ btnPrimary }}">⬇ 下載單字與例句 (CSV)</button>
+      </div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:20px;">
+        <sc-for list="{{ themeChips }}" as="ch" hint-placeholder-count="8">
+          <button onClick="{{ ch.onTap }}" style="{{ ch.style }}">{{ ch.name }}</button>
+        </sc-for>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px;">
+        <sc-for list="{{ wordCards }}" as="w" hint-placeholder-count="8">
+          <div style="{{ w.cardStyle }}">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <button onClick="{{ w.sayWord }}" style="background:{{ w.color }};color:#fff;border-radius:12px;width:52px;height:52px;font-size:24px;flex:none;box-shadow:0 3px 0 rgba(0,0,0,.12);">🔊</button>
+              <div style="flex:1;min-width:0;">
+                <div style="font-family:'Fredoka';font-size:26px;font-weight:700;color:#1f2440;">{{ w.en }}</div>
+                <div style="font-size:18px;color:#6b7394;font-weight:600;">{{ w.zh }}</div>
+              </div>
+              <div style="background:{{ w.color }};color:#fff;font-size:14px;font-weight:700;padding:5px 12px;border-radius:999px;flex:none;">{{ w.themeName }}</div>
+            </div>
+            <div style="margin-top:12px;padding-top:12px;border-top:1px dashed #e6ecfb;display:flex;align-items:flex-start;gap:10px;">
+              <button onClick="{{ w.saySent }}" style="background:#eef4ff;color:#2f6fed;border-radius:10px;width:40px;height:40px;font-size:18px;flex:none;">🔊</button>
+              <div>
+                <div style="font-size:17px;color:#1f2440;font-weight:600;line-height:1.4;">{{ w.en_s }}</div>
+                <div style="font-size:15px;color:#8a90ad;line-height:1.4;">{{ w.zh_s }}</div>
+              </div>
+            </div>
+          </div>
+        </sc-for>
+      </div>
+    </sc-if>
+
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;:{&quot;width&quot;:1280,&quot;height&quot;:820},
+  &quot;quizLength&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:5,&quot;max&quot;:20,&quot;section&quot;:&quot;教學設定&quot;,&quot;unit&quot;:&quot;題&quot;},
+  &quot;cornerRounds&quot;:{&quot;editor&quot;:&quot;int&quot;,&quot;default&quot;:10,&quot;tsType&quot;:&quot;number&quot;,&quot;min&quot;:5,&quot;max&quot;:15,&quot;section&quot;:&quot;教學設定&quot;,&quot;unit&quot;:&quot;題&quot;},
+  &quot;ttsRate&quot;:{&quot;editor&quot;:&quot;range&quot;,&quot;default&quot;:0.95,&quot;min&quot;:0.6,&quot;max&quot;:1.2,&quot;step&quot;:0.05,&quot;tsType&quot;:&quot;number&quot;,&quot;section&quot;:&quot;教學設定&quot;},
+  &quot;soundDefault&quot;:{&quot;editor&quot;:&quot;boolean&quot;,&quot;default&quot;:true,&quot;tsType&quot;:&quot;boolean&quot;,&quot;section&quot;:&quot;教學設定&quot;}
+}">
+class Component extends DCLogic {
+  allWords = [
+    {en:'basketball',zh:'籃球',theme:'sport',en_s:'I play basketball after school.',zh_s:'我放學後打籃球。'},
+    {en:'soccer',zh:'足球',theme:'sport',en_s:'He kicks the soccer ball.',zh_s:'他踢足球。'},
+    {en:'sprint',zh:'短跑衝刺',theme:'sport',en_s:'She can sprint very fast.',zh_s:'她可以衝刺得很快。'},
+    {en:'swimming',zh:'游泳',theme:'sport',en_s:'Swimming is good exercise.',zh_s:'游泳是很好的運動。'},
+    {en:'volleyball',zh:'排球',theme:'sport',en_s:'We play volleyball on the beach.',zh_s:'我們在海灘打排球。'},
+    {en:'badminton',zh:'羽球',theme:'sport',en_s:'Badminton needs a light racket.',zh_s:'羽球需要輕的球拍。'},
+    {en:'shoulder',zh:'肩膀',theme:'body',en_s:'Move your shoulder slowly.',zh_s:'慢慢地動你的肩膀。'},
+    {en:'ankle',zh:'腳踝',theme:'body',en_s:'He hurt his ankle.',zh_s:'他弄傷了腳踝。'},
+    {en:'knee',zh:'膝蓋',theme:'body',en_s:'Bend your knee a little.',zh_s:'稍微彎曲你的膝蓋。'},
+    {en:'wrist',zh:'手腕',theme:'body',en_s:'Keep your wrist strong.',zh_s:'保持手腕有力。'},
+    {en:'elbow',zh:'手肘',theme:'body',en_s:'Bend your elbow to throw.',zh_s:'彎曲手肘來投擲。'},
+    {en:'muscle',zh:'肌肉',theme:'body',en_s:'Sports build strong muscle.',zh_s:'運動能鍛鍊強壯的肌肉。'},
+    {en:'jump',zh:'跳',theme:'action',en_s:'Jump as high as you can.',zh_s:'盡量往上跳。'},
+    {en:'stretch',zh:'伸展',theme:'action',en_s:'Stretch before you run.',zh_s:'跑步前先伸展。'},
+    {en:'pass',zh:'傳球',theme:'action',en_s:'Pass the ball to me.',zh_s:'把球傳給我。'},
+    {en:'run',zh:'跑',theme:'action',en_s:'We run every morning.',zh_s:'我們每天早上跑步。'},
+    {en:'throw',zh:'投擲',theme:'action',en_s:'Throw the ball to the base.',zh_s:'把球投到壘包。'},
+    {en:'catch',zh:'接',theme:'action',en_s:'Catch the ball with two hands.',zh_s:'用雙手接球。'},
+    {en:'kick',zh:'踢',theme:'action',en_s:'Kick the ball into the goal.',zh_s:'把球踢進球門。'},
+    {en:'racket',zh:'球拍',theme:'gear',en_s:'This racket is new.',zh_s:'這支球拍是新的。'},
+    {en:'whistle',zh:'哨子',theme:'gear',en_s:'The coach blows the whistle.',zh_s:'教練吹哨子。'},
+    {en:'net',zh:'網子',theme:'gear',en_s:'The ball is over the net.',zh_s:'球越過網子。'},
+    {en:'helmet',zh:'頭盔',theme:'gear',en_s:'Wear a helmet for safety.',zh_s:'為了安全戴頭盔。'},
+    {en:'glove',zh:'手套',theme:'gear',en_s:'He wears a glove to catch.',zh_s:'他戴手套接球。'},
+    {en:'endurance',zh:'耐力',theme:'fit',en_s:'Running builds endurance.',zh_s:'跑步能培養耐力。'},
+    {en:'warm-up',zh:'熱身',theme:'fit',en_s:'Do a warm-up first.',zh_s:'先做熱身。'},
+    {en:'strength',zh:'力量',theme:'fit',en_s:'Push-ups build strength.',zh_s:'伏地挺身能鍛鍊力量。'},
+    {en:'balance',zh:'平衡',theme:'fit',en_s:'Yoga improves balance.',zh_s:'瑜伽能改善平衡。'},
+    {en:'speed',zh:'速度',theme:'fit',en_s:'He runs with great speed.',zh_s:'他跑得很快。'},
+    {en:'flexible',zh:'柔軟的',theme:'fit',en_s:'Stretching makes you flexible.',zh_s:'伸展讓你變柔軟。'},
+    {en:'teamwork',zh:'團隊合作',theme:'spirit',en_s:'Teamwork helps us win.',zh_s:'團隊合作幫助我們獲勝。'},
+    {en:'focus',zh:'專注',theme:'spirit',en_s:'Focus on the ball.',zh_s:'專注在球上。'},
+    {en:'confidence',zh:'自信',theme:'spirit',en_s:'Play with confidence.',zh_s:'帶著自信比賽。'},
+    {en:'respect',zh:'尊重',theme:'spirit',en_s:'We respect the other team.',zh_s:'我們尊重對手。'},
+    {en:'effort',zh:'努力',theme:'spirit',en_s:'Give your best effort.',zh_s:'盡你最大的努力。'},
+    {en:'foul',zh:'犯規',theme:'game',en_s:'That move was a foul.',zh_s:'那個動作是犯規。'},
+    {en:'score',zh:'得分',theme:'game',en_s:'What is the score now?',zh_s:'現在比分是多少？'},
+    {en:'referee',zh:'裁判',theme:'game',en_s:'The referee stops the game.',zh_s:'裁判暫停比賽。'},
+    {en:'winner',zh:'贏家',theme:'game',en_s:'Our team is the winner.',zh_s:'我們隊是贏家。'},
+    {en:'coach',zh:'教練',theme:'game',en_s:'The coach teaches us.',zh_s:'教練教導我們。'},
+    {en:'team',zh:'隊伍',theme:'game',en_s:'We are one team.',zh_s:'我們是一隊。'},
+  ];
+  themes = {
+    sport:{name:'運動項目',color:'#e63946'},
+    body:{name:'身體部位',color:'#1a9b8f'},
+    action:{name:'動作指令',color:'#e07a1f'},
+    gear:{name:'體育器材',color:'#6c5ce7'},
+    fit:{name:'健身體能',color:'#12a594'},
+    spirit:{name:'運動精神',color:'#e8618c'},
+    game:{name:'比賽用語',color:'#2f6fed'},
+  };
+  state = {
+    screen:'home', soundOn:true, toast:null, filter:'all',
+    cor:{}, whack:{}, match:{}, track:{}, quiz:{},
+    history:{words:{},sessions:[]},
+  };
+  _t = {};
+
+  componentDidMount(){
+    this.allWords.forEach((w,i)=>{ w.id=i; w.themeName=this.themes[w.theme].name; w.color=this.themes[w.theme].color; });
+    this.setState({ soundOn: this.props.soundDefault!==undefined?this.props.soundDefault:true, history:this.loadHistory() });
+    try{ if(window.speechSynthesis) window.speechSynthesis.getVoices(); }catch(e){}
+  }
+  componentWillUnmount(){ this.clearAll(); }
+  clearAll(){ Object.values(this._t).forEach(id=>{clearInterval(id);clearTimeout(id);}); this._t={}; try{speechSynthesis.cancel();}catch(e){} }
+
+  // ---------- utils ----------
+  shuffle(a){ a=a.slice(); for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];} return a; }
+  sample(a,n){ return this.shuffle(a).slice(0,n); }
+  words(){ return this.allWords; }
+
+  // ---------- audio ----------
+  ac(){ if(!this._ac){ try{ this._ac=new (window.AudioContext||window.webkitAudioContext)(); }catch(e){} } if(this._ac&&this._ac.state==='suspended') this._ac.resume(); return this._ac; }
+  tone(f,d,type,delay){ if(!this.state.soundOn) return; const ac=this.ac(); if(!ac) return; const t=ac.currentTime+(delay||0); const o=ac.createOscillator(),g=ac.createGain(); o.type=type||'sine'; o.frequency.value=f; o.connect(g); g.connect(ac.destination); g.gain.setValueAtTime(.0001,t); g.gain.exponentialRampToValueAtTime(.28,t+.02); g.gain.exponentialRampToValueAtTime(.0001,t+d); o.start(t); o.stop(t+d+.03); }
+  sCorrect(){ this.tone(523,.13,'triangle',0); this.tone(659,.13,'triangle',.1); this.tone(784,.2,'triangle',.2); }
+  sWrong(){ this.tone(196,.28,'sawtooth',0); }
+  sTap(){ this.tone(520,.05,'square',0); }
+  sPop(){ this.tone(700,.05,'sine',0); }
+  sWin(){ [523,659,784,1046].forEach((f,i)=>this.tone(f,.22,'triangle',i*.13)); }
+  speak(text){ try{ const u=new SpeechSynthesisUtterance(text); u.lang=/[\u4e00-\u9fff]/.test(text)?'zh-TW':'en-US'; u.rate=(this.props.ttsRate!==undefined?this.props.ttsRate:.95); speechSynthesis.cancel(); speechSynthesis.speak(u); }catch(e){} }
+
+  toast(msg,color){ this.setState({toast:{msg,color:color||'#2f6fed'}}); clearTimeout(this._t.toast); this._t.toast=setTimeout(()=>this.setState({toast:null}),1300); }
+  toggleSound(){ this.setState(s=>({soundOn:!s.soundOn})); }
+
+  // ---------- history ----------
+  loadHistory(){ try{ const r=localStorage.getItem('peEng_v1'); if(r) return JSON.parse(r); }catch(e){} return {words:{},sessions:[]}; }
+  saveHistory(){ try{ localStorage.setItem('peEng_v1',JSON.stringify(this.state.history)); }catch(e){} }
+  record(id,ok){ this.setState(s=>{ const words={...s.history.words}; const w=words[id]||{c:0,w:0}; words[id]=ok?{c:w.c+1,w:w.w}:{c:w.c,w:w.w+1}; return {history:{...s.history,words}}; }, ()=>this.saveHistory()); }
+  addSession(type,score,total){ this.setState(s=>{ const sessions=[{type,score,total,date:Date.now()},...(s.history.sessions||[])].slice(0,50); return {history:{...s.history,sessions}}; }, ()=>this.saveHistory()); }
+  resetHistory(){ this.setState({history:{words:{},sessions:[]}},()=>this.saveHistory()); this.toast('已清除紀錄','#e8618c'); }
+
+  // ---------- nav ----------
+  nav(screen){ this.clearAll(); this.setState({screen}); }
+
+  // ---------- corners ----------
+  startCorners(){ this.clearAll(); this.setState({screen:'corners',cor:{playing:true,round:0,score:0,total:(this.props.cornerRounds||10)}},()=>this.corRound()); }
+  corRound(){ const total=this.state.cor.total; if(this.state.cor.round>=total){ this.setState(s=>({cor:{...s.cor,playing:false,done:true}})); this.addSession('四角挑戰',this.state.cor.score,total); this.sWin(); return; }
+    const ans=this.sample(this.words(),1)[0]; const others=this.sample(this.words().filter(w=>w.id!==ans.id),3); const opts=this.shuffle([ans,...others]); this.setState(s=>({cor:{...s.cor,ans,options:opts}}),()=>{ this._t.cor=setTimeout(()=>this.speak(ans.en),350); }); }
+  corPick(opt){ const ans=this.state.cor.ans; const ok=opt.id===ans.id; this.record(ans.id,ok); if(ok){ this.sCorrect(); this.toast('答對了！ '+ans.en,'#12a594'); this.setState(s=>({cor:{...s.cor,score:s.cor.score+1,round:s.cor.round+1}}),()=>{this._t.n=setTimeout(()=>this.corRound(),700);}); } else { this.sWrong(); this.speak(ans.en); this.toast('正確答案：'+ans.en+' '+ans.zh,'#e8618c'); this.setState(s=>({cor:{...s.cor,round:s.cor.round+1}}),()=>{this._t.n=setTimeout(()=>this.corRound(),1100);}); } }
+
+  // ---------- whack ----------
+  startWhack(){ this.clearAll(); const dur=45; this.setState({screen:'whack',whack:{playing:true,score:0,time:dur,holes:Array(9).fill(null),target:this.sample(this.words(),1)[0]}},()=>{
+    this._t.wtick=setInterval(()=>this.whackFill(),850);
+    this._t.wtimer=setInterval(()=>{ this.setState(s=>{ const time=s.whack.time-1; if(time<=0){ clearInterval(this._t.wtick); clearInterval(this._t.wtimer); this.addSession('打地鼠',s.whack.score,'★'); this.sWin(); return {whack:{...s.whack,time:0,playing:false,done:true}}; } return {whack:{...s.whack,time}}; }); },1000);
+    this.whackFill(); this.speak(this.state.whack.target.en);
+  }); }
+  whackFill(){ this.setState(s=>{ if(!s.whack.playing) return {}; const target=s.whack.target; const holes=Array(9).fill(null); const idxs=this.sample([0,1,2,3,4,5,6,7,8],3+Math.floor(Math.random()*2)); const putTarget=Math.random()<0.75; const pool=this.shuffle(this.words().filter(w=>w.id!==target.id)); let p=0; idxs.forEach((h,i)=>{ if(i===0&&putTarget){ holes[h]=target; } else { holes[h]=pool[p++]; } }); this.sPop(); return {whack:{...s.whack,holes}}; }); }
+  whackHit(hole){ if(!hole) return; const s=this.state.whack; const ok=hole.id===s.target.id; this.record(s.target.id,ok); if(ok){ this.sCorrect(); const nt=this.sample(this.words().filter(w=>w.id!==s.target.id),1)[0]; this.setState(st=>({whack:{...st.whack,score:st.whack.score+1,target:nt,holes:Array(9).fill(null)}}),()=>{ this.speak(nt.en); }); this.toast('+1 '+hole.en,'#12a594'); } else { this.sWrong(); this.toast('要找：'+s.target.zh,'#e8618c'); } }
+
+  // ---------- match ----------
+  startMatch(){ this.clearAll(); this._matchRounds=this.chunk(this.sample(this.words(),12),4); this._mr=0; this._perfect=0; this.setState({screen:'match',match:{playing:true}},()=>this.matchRound()); }
+  chunk(a,n){ const r=[]; for(let i=0;i<a.length;i+=n) r.push(a.slice(i,i+n)); return r; }
+  matchRound(){ if(this._mr>=this._matchRounds.length){ this.setState(s=>({match:{...s.match,playing:false,done:true,perfect:this._perfect,total:this._matchRounds.length}})); this.addSession('中英配對',this._perfect+'/'+this._matchRounds.length,'★'); this.sWin(); return; }
+    const set=this._matchRounds[this._mr]; this._roundPerfect=true; this.setState(s=>({match:{...s.match,pairs:set,left:this.shuffle(set),right:this.shuffle(set),selL:null,selR:null,done:[],roundLabel:(this._mr+1)+' / '+this._matchRounds.length}})); }
+  matchLeft(c){ if(this.state.match.done.includes(c.id)) return; this.sTap(); this.speak(c.zh); this.setState(s=>({match:{...s.match,selL:c.id}}),()=>this.matchCheck()); }
+  matchRight(c){ if(this.state.match.done.includes(c.id)) return; this.sTap(); this.speak(c.en); this.setState(s=>({match:{...s.match,selR:c.id}}),()=>this.matchCheck()); }
+  matchCheck(){ const m=this.state.match; if(m.selL==null||m.selR==null) return; if(m.selL===m.selR){ this.sCorrect(); const done=[...m.done,m.selL]; this.record(m.selL,true); this.setState(s=>({match:{...s.match,done,selL:null,selR:null}}),()=>{ if(done.length>=m.pairs.length){ if(this._roundPerfect) this._perfect++; this._mr++; this._t.mn=setTimeout(()=>this.matchRound(),650); } }); } else { this.sWrong(); this._roundPerfect=false; this.record(m.selL,false); this.toast('不對喔，再試試','#e8618c'); this._t.mx=setTimeout(()=>this.setState(s=>({match:{...s.match,selL:null,selR:null}})),550); } }
+
+  // ---------- track ----------
+  startTrack(){ this.clearAll(); this.setState({screen:'track',track:{playing:true,round:0,score:0,total:8}},()=>this.trackRound()); }
+  trackRound(){ const t=this.state.track; if(t.round>=t.total){ this.setState(s=>({track:{...s.track,playing:false,done:true}})); this.addSession('移動接字',t.score,t.total); this.sWin(); return; }
+    const target=this.sample(this.words(),1)[0]; const others=this.sample(this.words().filter(w=>w.id!==target.id),2); const items=this.shuffle([target,...others]).map((w,i)=>({...w,x:104+i*16,y:12+i*30,answered:false})); const speed=0.32+t.round*0.03;
+    this.setState(s=>({track:{...s.track,target,items,answered:false}}),()=>{ this.speak(target.en);
+      this._t.trk=setInterval(()=>{ this.setState(st=>{ if(!st.track.playing) return {}; const items=st.track.items.map(it=>({...it,x:it.x-speed})); if(items.every(it=>it.x<-20)){ clearInterval(this._t.trk); if(!st.track.answered){ this.record(target.id,false); } this._t.trn=setTimeout(()=>this.setState(s2=>({track:{...s2.track,round:s2.track.round+1}}),()=>this.trackRound()),200); } return {track:{...st.track,items}}; }); },30);
+    }); }
+  trackTap(it){ const t=this.state.track; if(t.answered) return; const ok=it.id===t.target.id; this.record(t.target.id,ok); clearInterval(this._t.trk); if(ok){ this.sCorrect(); this.toast('答對！ '+it.en,'#12a594'); this.setState(s=>({track:{...s.track,answered:true,score:s.track.score+1,round:s.track.round+1}}),()=>{this._t.trn=setTimeout(()=>this.trackRound(),650);}); } else { this.sWrong(); this.speak(t.target.en); this.toast('要點：'+t.target.zh,'#e8618c'); this.setState(s=>({track:{...s.track,answered:true,round:s.track.round+1}}),()=>{this._t.trn=setTimeout(()=>this.trackRound(),900);}); } }
+
+  // ---------- quiz ----------
+  startQuiz(){ this.clearAll(); const n=this.props.quizLength||10; const types=['listen','zh2en','context','cloze','spell']; const picks=this.sample(this.words(),n); const qs=picks.map((w,i)=>this.makeQ(w,types[i%types.length])); this.setState({screen:'quiz',quiz:{playing:true,idx:0,score:0,total:n,list:qs}},()=>this.loadQ()); }
+  makeQ(w,type){ const distract=this.sample(this.words().filter(x=>x.id!==w.id),3); const opts=this.shuffle([w,...distract]); const q={type,word:w,options:opts}; if(type==='spell'){ q.tiles=this.shuffle(w.en.replace('-','').split('')); q.solution=w.en.replace('-',''); } return q; }
+  loadQ(){ const q=this.state.quiz.list[this.state.quiz.idx]; if(q&&q.type==='spell') this.setState(s=>({quiz:{...s.quiz,built:[]}})); if(q&&(q.type==='listen')) this._t.q=setTimeout(()=>this.speak(q.word.en),300); }
+  quizAnswer(opt){ const q=this.state.quiz.list[this.state.quiz.idx]; const ok=opt.id===q.word.id; this.record(q.word.id,ok); if(ok){ this.sCorrect(); this.toast('答對！','#12a594'); } else { this.sWrong(); this.speak(q.word.en); this.toast('答案：'+q.word.en+' '+q.word.zh,'#e8618c'); } this.setState(s=>({quiz:{...s.quiz,score:s.quiz.score+(ok?1:0)}}),()=>this.nextQ(ok?650:1100)); }
+  quizTile(t,i){ this.sTap(); this.setState(s=>({quiz:{...s.quiz,built:[...(s.quiz.built||[]),{ch:t.ch,ti:i}]}}),()=>this.quizSpellCheck()); }
+  quizBack(){ this.setState(s=>({quiz:{...s.quiz,built:(s.quiz.built||[]).slice(0,-1)}})); }
+  quizClear(){ this.setState(s=>({quiz:{...s.quiz,built:[]}})); }
+  quizSpellCheck(){ const q=this.state.quiz.list[this.state.quiz.idx]; const built=(this.state.quiz.built||[]).map(b=>b.ch).join(''); if(built.length>=q.solution.length){ const ok=built.toLowerCase()===q.solution.toLowerCase(); this.record(q.word.id,ok); if(ok){ this.sCorrect(); this.toast('拼對了！','#12a594'); } else { this.sWrong(); this.speak(q.word.en); this.toast('正確：'+q.word.en,'#e8618c'); } this.setState(s=>({quiz:{...s.quiz,score:s.quiz.score+(ok?1:0)}}),()=>this.nextQ(ok?700:1200)); } }
+  nextQ(delay){ this._t.nq=setTimeout(()=>{ this.setState(s=>{ const idx=s.quiz.idx+1; if(idx>=s.quiz.total){ this.addSession('單字測驗',s.quiz.score+'/'+s.quiz.total,s.quiz.total); this.sWin(); return {quiz:{...s.quiz,playing:false,done:true}}; } return {quiz:{...s.quiz,idx}}; },()=>{ if(this.state.quiz.playing) this.loadQ(); }); },delay); }
+
+  // ---------- downloads ----------
+  download(name,content,mime){ try{ const blob=new Blob([content],{type:mime||'text/plain;charset=utf-8'}); const url=URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download=name; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url),1500); }catch(e){} }
+  downloadWords(){ let csv='\ufeff英文,中文,主題,例句(英文),例句(中文)\n'; this.words().forEach(w=>{ csv+=[w.en,w.zh,w.themeName,'"'+w.en_s+'"','"'+w.zh_s+'"'].join(',')+'\n'; }); this.download('運動英文單字表.csv',csv,'text/csv;charset=utf-8'); this.toast('已下載單字表 CSV','#12a594'); }
+  downloadHistory(){ const h=this.state.history; let t='運動英文大挑戰 — 學習歷程\n產生時間：'+new Date().toLocaleString('zh-TW')+'\n\n'; t+='=== 單字熟練度 ===\n'; this.words().forEach(w=>{ const r=h.words[w.id]||{c:0,w:0}; const tot=r.c+r.w; const pct=tot?Math.round(r.c/tot*100):0; t+=`${w.en} (${w.zh})  答對${r.c} 答錯${r.w}  熟練度 ${pct}%\n`; }); t+='\n=== 例句 ===\n'; this.words().forEach(w=>{ t+=`${w.en}: ${w.en_s} / ${w.zh_s}\n`; }); t+='\n=== 活動紀錄 ===\n'; (h.sessions||[]).forEach(s=>{ t+=`${new Date(s.date).toLocaleString('zh-TW')}  ${s.type}  ${s.score}\n`; }); this.download('學習歷程.txt',t); this.toast('已下載學習歷程','#12a594'); }
+
+  // ---------- render helpers ----------
+  tileStyle(color,shadow){ return `display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:34px 20px;border-radius:26px;color:#fff;background:${color};box-shadow:0 8px 0 ${shadow};transition:transform .12s;min-height:190px;`; }
+
+  renderVals(){
+    const s=this.state; const sc=s.screen;
+    const btnPrimary='background:#2f6fed;color:#fff;border-radius:16px;padding:16px 30px;font-size:22px;font-weight:700;box-shadow:0 5px 0 #1b4fd0;';
+    const btnGhost='background:#fff;color:#2f6fed;border:2px solid #cbd6f5;border-radius:16px;padding:16px 30px;font-size:22px;font-weight:700;';
+    const resultStyle='flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;animation:pop .4s ease;gap:4px;';
+    const v={
+      notHome: sc!=='home', isHome:sc==='home', isMenu:sc==='menu', isCorners:sc==='corners', isWhack:sc==='whack', isMatch:sc==='match', isTrack:sc==='track', isQuiz:sc==='quiz', isHistory:sc==='history', isWords:sc==='words',
+      soundOn:s.soundOn, soundLabel: s.soundOn?'🔊 音效 開':'🔇 音效 關', soundBtnBg: s.soundOn?'#eef4ff':'#f3f0f0',
+      goHome:()=>this.nav('home'), goMenu:()=>this.nav('menu'), goHistory:()=>this.nav('history'),
+      startCorners:()=>this.startCorners(), startWhack:()=>this.startWhack(), startMatch:()=>this.startMatch(), startTrack:()=>this.startTrack(), startQuiz:()=>this.startQuiz(),
+      downloadWords:()=>this.downloadWords(), downloadHistory:()=>this.downloadHistory(), resetHistory:()=>this.resetHistory(),
+      toggleSound:()=>this.toggleSound(),
+      btnPrimary, btnGhost, resultStyle,
+    };
+    // toast
+    v.toast = s.toast ? {show:true,msg:s.toast.msg,style:`position:fixed;top:78px;left:50%;transform:translateX(-50%);z-index:60;background:${s.toast.color};color:#fff;padding:14px 30px;border-radius:999px;font-size:24px;font-weight:700;box-shadow:0 8px 24px rgba(0,0,0,.2);animation:pop .3s ease;`} : {show:false};
+
+    // stats
+    const practiced=Object.keys(s.history.words||{}).length;
+    v.stat={practiced,totalWords:this.allWords.length,sessions:(s.history.sessions||[]).length};
+
+    // home tiles
+    v.homeTiles=[
+      {title:'練習遊戲',desc:'4 種邊動邊學的遊戲',icon:'🎮',style:this.tileStyle('#2f6fed','#1b4fd0'),onTap:()=>this.nav('menu')},
+      {title:'單字測驗',desc:'5 種題型檢測成效',icon:'📝',style:this.tileStyle('#e8618c','#c8447a'),onTap:()=>this.startQuiz()},
+      {title:'學習歷程',desc:'看熟練度與紀錄',icon:'📈',style:this.tileStyle('#12a594','#0c7d70'),onTap:()=>this.nav('history')},
+      {title:'單字表',desc:'查看 · 發音 · 下載',icon:'📚',style:this.tileStyle('#e07a1f','#b85f10'),onTap:()=>this.nav('words')},
+    ];
+    v.gameTiles=[
+      {title:'四角挑戰',desc:'聽發音，跑到正確角落',icon:'🧭',style:this.tileStyle('#e63946','#bf2a36'),onTap:()=>this.startCorners()},
+      {title:'打地鼠',desc:'正確單字出現就快拍',icon:'🔨',style:this.tileStyle('#6c5ce7','#5343c4'),onTap:()=>this.startWhack()},
+      {title:'中英配對',desc:'把中文對到英文',icon:'🧩',style:this.tileStyle('#12a594','#0c7d70'),onTap:()=>this.startMatch()},
+      {title:'移動接字',desc:'單字滑過畫面要點中',icon:'⚡',style:this.tileStyle('#2f6fed','#1b4fd0'),onTap:()=>this.startTrack()},
+    ];
+
+    // corners
+    if(sc==='corners'){ const c=s.cor; const corners=[
+        'position:absolute;top:16px;left:16px;',
+        'position:absolute;top:16px;right:16px;',
+        'position:absolute;bottom:16px;left:16px;',
+        'position:absolute;bottom:16px;right:16px;'];
+      const palette=['#e63946','#6c5ce7','#12a594','#e07a1f'];
+      v.cor={ playing:!!c.playing, done:!!c.done, score:c.score||0, total:c.total||0,
+        roundLabel:((c.round||0)+1)+' / '+(c.total||0), hintZh:(c.ans&&c.ans.zh)||'',
+        replay:()=>c.ans&&this.speak(c.ans.en), grade:this.grade(c.score,c.total),
+        options:(c.options||[]).map((o,i)=>({en:o.en,onTap:()=>this.corPick(o),
+          style:`${corners[i]}width:230px;height:150px;border-radius:22px;background:${palette[i]};color:#fff;font-family:'Fredoka';font-size:34px;font-weight:700;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .3s ease;`})) };
+    }
+    // whack
+    if(sc==='whack'){ const w=s.whack; const cols=['#e63946','#6c5ce7','#12a594','#e07a1f','#2f6fed','#e8618c'];
+      v.whack={ playing:!!w.playing, done:!!w.done, score:w.score||0, time:w.time||0, targetZh:(w.target&&w.target.zh)||'', say:()=>w.target&&this.speak(w.target.en), grade:this.grade(w.score,10),
+        holes:(w.holes||Array(9).fill(null)).map((h,i)=>({ en:h?h.en:'', onTap:()=>this.whackHit(h),
+          style: h? `height:100%;min-height:120px;border-radius:20px;background:${cols[h.id%cols.length]};color:#fff;font-family:'Fredoka';font-size:30px;font-weight:700;box-shadow:0 6px 0 rgba(0,0,0,.18);animation:pop .25s ease;`
+                   : `height:100%;min-height:120px;border-radius:20px;background:#e9eefb;border:3px dashed #c7d2f0;color:transparent;`})) };
+    }
+    // match
+    if(sc==='match'){ const m=s.match; const cardBase='padding:20px;border-radius:18px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.1);transition:transform .1s;min-height:66px;';
+      const styleFor=(c,side)=>{ const done=(m.done||[]).includes(c.id); const sel=(side==='L'?m.selL:m.selR)===c.id; if(done) return cardBase+'background:#d6f5ee;color:#0c7d70;border:3px solid #12a594;opacity:.7;'; if(sel) return cardBase+'background:#fff3d6;color:#e07a1f;border:3px solid #e07a1f;transform:scale(1.03);'; return cardBase+(side==='L'?'background:#ffe6f0;color:#c8447a;border:3px solid #ffd0e2;':'background:#e6f0ff;color:#2f6fed;border:3px solid #cfe0ff;'); };
+      v.match={ playing:!!m.playing, done:!!m.done, roundLabel:m.roundLabel||'', perfect:m.perfect||0, total:m.total||0,
+        left:(m.left||[]).map(c=>({zh:c.zh,onTap:()=>this.matchLeft(c),style:styleFor(c,'L')+(( (m.done||[]).includes(c.id))?'':'font-size:24px;')})),
+        right:(m.right||[]).map(c=>({en:c.en,onTap:()=>this.matchRight(c),style:styleFor(c,'R')+"font-family:'Fredoka';font-size:24px;"})) };
+    }
+    // track
+    if(sc==='track'){ const t=s.track; const cols=['#e63946','#6c5ce7','#2f6fed'];
+      v.track={ playing:!!t.playing, done:!!t.done, score:t.score||0, total:t.total||0, roundLabel:((t.round||0)+1)+' / '+(t.total||0), targetZh:(t.target&&t.target.zh)||'', say:()=>t.target&&this.speak(t.target.en), grade:this.grade(t.score,t.total),
+        items:(t.items||[]).map((it,i)=>({en:it.en,onTap:()=>this.trackTap(it),
+          style:`position:absolute;left:${it.x}%;top:${it.y}%;padding:16px 26px;border-radius:16px;background:${cols[i%cols.length]};color:#fff;font-family:'Fredoka';font-size:28px;font-weight:700;box-shadow:0 5px 0 rgba(0,0,0,.18);white-space:nowrap;`})) };
+    }
+    // quiz
+    if(sc==='quiz'){ const q=s.quiz; const cur=(q.list||[])[q.idx]||null; const tags={listen:['聽音選字','#6c5ce7'],zh2en:['看中文選英文','#e8618c'],context:['情境選字','#12a594'],cloze:['例句挖空','#e07a1f'],spell:['拼字填空','#2f6fed']};
+      let prompt='',hasAudio=false,isChoice=false,isSpell=false,options=[],tiles=[],built='';
+      if(cur){ const tp=cur.type; if(tp==='listen'){ prompt='仔細聽發音，選出正確單字'; hasAudio=true; isChoice=true; }
+        else if(tp==='zh2en'){ prompt='「'+cur.word.zh+'」的英文是？'; isChoice=true; }
+        else if(tp==='context'){ prompt=cur.word.zh_s; isChoice=true; }
+        else if(tp==='cloze'){ prompt=cur.word.en_s.replace(new RegExp(cur.word.en,'i'),'______'); isChoice=true; }
+        else if(tp==='spell'){ prompt='「'+cur.word.zh+'」怎麼拼？'; hasAudio=true; isSpell=true; }
+        if(isChoice){ options=cur.options.map(o=>({label:o.en,onTap:()=>this.quizAnswer(o),style:"background:#fff;border:3px solid #cbd6f5;border-radius:16px;padding:20px;font-family:'Fredoka';font-size:26px;font-weight:700;color:#1f2440;box-shadow:0 4px 0 #e6ecfb;"})); }
+        if(isSpell){ const usedIdx=(q.built||[]).map(b=>b.ti); tiles=cur.tiles.map((ch,i)=>({ch,onTap:()=>this.quizTile({ch},i),style:`width:64px;height:70px;border-radius:14px;font-family:'Fredoka';font-size:34px;font-weight:700;box-shadow:0 4px 0 rgba(0,0,0,.12);${usedIdx.includes(i)?'background:#e6ecfb;color:#c0c8e0;':'background:#2f6fed;color:#fff;'}`})); built=(q.built||[]).map(b=>b.ch).join(''); }
+      }
+      v.quiz={ playing:!!q.playing, done:!!q.done, num:(q.idx||0)+1, total:q.total||0, score:q.score||0,
+        tag:cur?tags[cur.type][0]:'', tagColor:cur?tags[cur.type][1]:'#2f6fed',
+        prompt, hasAudio, isChoice, isSpell, options, tiles, built,
+        say:()=>cur&&this.speak(cur.word.en), back:()=>this.quizBack(), clear:()=>this.quizClear(),
+        barStyle:`height:100%;width:${q.total?Math.round((q.idx)/q.total*100):0}%;background:linear-gradient(90deg,#2f6fed,#e8618c);border-radius:999px;transition:width .3s;`,
+        pct:q.total?Math.round((q.score||0)/q.total*100):0, grade:this.grade(q.score,q.total),
+        emoji:(q.total&&q.score/q.total>=0.8)?'🏆':(q.total&&q.score/q.total>=0.5)?'👍':'💪' };
+    }
+    // history
+    if(sc==='history'){ const h=s.history; let c=0,ww=0; Object.values(h.words||{}).forEach(r=>{c+=r.c;ww+=r.w;});
+      const cardCols=[['#2f6fed','#1b4fd0'],['#12a594','#0c7d70'],['#e8618c','#c8447a'],['#e07a1f','#b85f10']];
+      v.hist={ cards:[
+          {value:practiced,label:'練習過的單字',style:this.statCard(cardCols[0])},
+          {value:c,label:'累計答對',style:this.statCard(cardCols[1])},
+          {value:ww,label:'累計答錯',style:this.statCard(cardCols[2])},
+          {value:(h.sessions||[]).length,label:'完成活動',style:this.statCard(cardCols[3])},
+        ],
+        words:this.words().map(w=>{ const r=(h.words||{})[w.id]||{c:0,w:0}; const tot=r.c+r.w; const pct=tot?Math.round(r.c/tot*100):0; const col=tot===0?'#9aa2c0':pct>=70?'#12a594':pct>=40?'#e07a1f':'#e63946'; return {en:w.en,zh:w.zh,say:()=>this.speak(w.en),label:tot?pct+'%':'未練習',color:col,barStyle:`height:100%;width:${pct}%;background:${col};border-radius:999px;`}; }),
+        hasSessions:(h.sessions||[]).length>0, noSessions:(h.sessions||[]).length===0,
+        sessions:(h.sessions||[]).slice(0,12).map(x=>({icon:this.sessIcon(x.type),type:x.type,score:''+x.score,date:new Date(x.date).toLocaleDateString('zh-TW',{month:'numeric',day:'numeric',hour:'2-digit',minute:'2-digit'})})) };
+    }
+    // words
+    if(sc==='words'){ const chips=[{key:'all',name:'全部',color:'#1f2440'}].concat(Object.keys(this.themes).map(k=>({key:k,name:this.themes[k].name,color:this.themes[k].color})));
+      v.themeChips=chips.map(ch=>({name:ch.name,onTap:()=>this.setState({filter:ch.key}),style:`padding:10px 20px;border-radius:999px;font-size:18px;font-weight:700;${s.filter===ch.key?`background:${ch.color};color:#fff;`:'background:#fff;color:#6b7394;border:2px solid #e6ecfb;'}`}));
+      const list=this.words().filter(w=>s.filter==='all'||w.theme===s.filter);
+      v.wordCards=list.map(w=>({en:w.en,zh:w.zh,en_s:w.en_s,zh_s:w.zh_s,themeName:w.themeName,color:w.color,sayWord:()=>this.speak(w.en),saySent:()=>this.speak(w.en_s),cardStyle:`background:#fff;border:2px solid #eef1fb;border-left:8px solid ${w.color};border-radius:18px;padding:18px;box-shadow:0 3px 10px rgba(31,36,64,.05);`}));
+    }
+    return v;
+  }
+  grade(sc,tot){ if(!tot) return '再接再厲！'; const p=sc/tot; return p>=0.9?'太厲害了，運動員等級！':p>=0.7?'很棒，繼續保持！':p>=0.5?'不錯，再多練幾次！':'加油，多聽多練會更好！'; }
+  statCard(c){ return `background:${c[0]};color:#fff;border-radius:20px;padding:22px 18px;text-align:center;box-shadow:0 6px 0 ${c[1]};`; }
+  sessIcon(t){ return t.indexOf('四角')>=0?'🧭':t.indexOf('地鼠')>=0?'🔨':t.indexOf('配對')>=0?'🧩':t.indexOf('接字')>=0?'⚡':t.indexOf('測驗')>=0?'📝':'🎯'; }
+}
+</script>
+</body>
+</html>
